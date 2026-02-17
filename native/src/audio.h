@@ -47,7 +47,7 @@ struct DeviceInfo {
 /** Configuration for the audio engine. */
 struct AudioConfig {
   int inputDeviceIndex = -1;   /* -1 = default input */
-  int outputDeviceIndex = -1;  /* -1 = default output */
+  int outputDeviceIndex = -1;  /* -1 = default output, -2 = disable output (mute) */
   double sampleRate = 48000.0;
   unsigned long framesPerBuffer = 480;  /* 10ms @ 48kHz = RNNoise frame size */
   bool tryExclusiveMode = true;
@@ -91,6 +91,13 @@ class AudioEngine {
 
   /** Set status callback for device events. */
   void setStatusCallback(StatusCallback cb);
+
+  /** Set VAD gate threshold [0..1]. Higher = more aggressive gating. */
+  void setVadThreshold(float threshold);
+  float getVadThreshold() const;
+
+  /** Access real-time metrics from the RNNoise wrapper (lock-free). */
+  const AudioMetrics& metrics() const { return rnnoise_.metrics(); }
 
  private:
   /**

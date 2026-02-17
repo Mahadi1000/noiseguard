@@ -24,4 +24,11 @@ contextBridge.exposeInMainWorld('noiseGuard', {
 
   /** Get current engine status. */
   getStatus: () => ipcRenderer.invoke('audio:get-status'),
+
+  /** Get real-time audio metrics (input/output RMS, VAD, gate, frame count). */
+  getMetrics: () => ipcRenderer.invoke('audio:get-metrics'),
+
+  /** Set VAD gate threshold [0.0, 1.0]. Higher = more aggressive gating. */
+  setVadThreshold: (threshold) =>
+    ipcRenderer.invoke('audio:set-vad-threshold', threshold),
 });

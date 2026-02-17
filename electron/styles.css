@@ -1,6 +1,6 @@
 /*
- * NoiseGuard - Minimal Dark Theme
- * Designed for a compact tray popup window (380x520).
+ * NoiseGuard - Dark Theme with Level Meters
+ * Compact tray popup window (380x640).
  */
 
 * {
@@ -15,9 +15,11 @@
   --bg-hover: #1f2b47;
   --accent: #00cc88;
   --accent-dim: #00995e;
+  --accent-blue: #4488ff;
   --text: #e0e0e0;
   --text-dim: #8892a4;
   --danger: #ff4757;
+  --warning: #ffaa00;
   --border: #2a2a4a;
   --radius: 8px;
 }
@@ -26,7 +28,8 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg);
   color: var(--text);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   user-select: none;
   -webkit-app-region: drag;
 }
@@ -35,8 +38,8 @@ body {
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  height: 100vh;
+  gap: 10px;
+  min-height: 100vh;
 }
 
 /* ── Header ──────────────────────────────── */
@@ -85,19 +88,19 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 16px 0;
+  gap: 6px;
+  padding: 12px 0;
 }
 
 .toggle-btn {
   -webkit-app-region: no-drag;
-  width: 120px;
-  height: 120px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   border: 3px solid var(--border);
   background: var(--bg-section);
   color: var(--text);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -122,7 +125,7 @@ body {
 }
 
 .toggle-hint {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-dim);
 }
 
@@ -133,24 +136,98 @@ body {
 }
 
 .section h2 {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--text-dim);
-  margin-bottom: 6px;
+  margin-bottom: 5px;
+}
+
+/* ── Level Meters ────────────────────────── */
+
+.meter-section {
+  padding: 8px 10px;
+  background: var(--bg-section);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.meter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.meter-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  width: 42px;
+  flex-shrink: 0;
+}
+
+.meter-track {
+  flex: 1;
+  height: 8px;
+  background: #0d1117;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.meter-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent), #00ff99);
+  transition: width 0.08s linear;
+}
+
+.meter-fill-out {
+  background: linear-gradient(90deg, var(--accent-blue), #66bbff);
+}
+
+.meter-db {
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+  width: 36px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* VAD indicator */
+.vad-indicator {
+  flex: 1;
+  height: 8px;
+  background: #0d1117;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.vad-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--warning), #ff6600);
+  transition: width 0.1s linear;
 }
 
 /* ── Device Select ───────────────────────── */
 
 .device-select {
   width: 100%;
-  padding: 8px 12px;
+  padding: 7px 10px;
   background: var(--bg-section);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text);
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
   outline: none;
   transition: border-color 0.2s;
@@ -175,7 +252,7 @@ body {
 }
 
 .level-value {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
@@ -184,18 +261,18 @@ body {
 .level-slider {
   -webkit-appearance: none;
   width: 100%;
-  height: 6px;
+  height: 5px;
   border-radius: 3px;
   background: var(--bg-section);
   outline: none;
-  margin: 8px 0 4px;
+  margin: 6px 0 3px;
   cursor: pointer;
 }
 
 .level-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: var(--accent);
   cursor: pointer;
@@ -207,18 +284,21 @@ body {
   transform: scale(1.15);
 }
 
+.vad-slider::-webkit-slider-thumb {
+  background: var(--warning);
+}
+
 .slider-labels {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: 9px;
   color: var(--text-dim);
 }
 
 /* ── Status ──────────────────────────────── */
 
 .status-section {
-  margin-top: auto;
-  padding: 10px 12px;
+  padding: 8px 10px;
   background: var(--bg-section);
   border-radius: var(--radius);
   border: 1px solid var(--border);
@@ -227,18 +307,63 @@ body {
 .status-row {
   display: flex;
   justify-content: space-between;
-  padding: 3px 0;
+  padding: 2px 0;
 }
 
 .status-label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-dim);
 }
 
 .status-value {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
+}
+
+/* ── Processing Log ─────────────────────── */
+
+.log-section {
+  padding: 8px 10px;
+  background: var(--bg-section);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.log-container {
+  max-height: 80px;
+  overflow-y: auto;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+.log-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.log-container::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.log-entry {
+  padding: 1px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+.log-entry .log-time {
+  color: #556;
+}
+
+.log-entry .log-ok {
+  color: var(--accent);
+}
+
+.log-entry .log-warn {
+  color: var(--warning);
 }
 
 /* ── Error Bar ───────────────────────────── */

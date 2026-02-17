@@ -8,7 +8,10 @@
  *   - stop()                      -> stop noise cancellation
  *   - setNoiseLevel(level)        -> adjust suppression [0.0, 1.0]
  *   - getNoiseLevel()             -> read current suppression level
+ *   - setVadThreshold(threshold)  -> adjust VAD gate threshold [0.0, 1.0]
+ *   - getVadThreshold()           -> read current VAD threshold
  *   - isRunning()                 -> check engine state
+ *   - getMetrics()                -> real-time audio metrics
  */
 
 #include <napi.h>
@@ -21,9 +24,6 @@ static noiseguard::AudioEngine g_engine;
 
 /**
  * getDevices() -> { inputs: [...], outputs: [...] }
- *
- * Returns an object with two arrays listing available audio input/output devices.
- * Each device entry has: { index, name, maxChannels, defaultSampleRate }.
  */
 Napi::Value GetDevices(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
@@ -60,10 +60,7 @@ Napi::Value GetDevices(const Napi::CallbackInfo& info) {
 }
 
 /**
- * start(inputDeviceIndex: number, outputDeviceIndex: number) -> string
- *
- * Start the audio engine. Returns empty string on success, error message on failure.
- * Pass -1 for either index to use the system default device.
+ * start(inputDeviceIndex, outputDeviceIndex) -> string
  */
 Napi::Value Start(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
@@ -91,15 +88,11 @@ Napi::Value Start(const Napi::CallbackInfo& info) {
 
 /**
  * stop() -> void
- *
- * Stop the audio engine. Blocks until processing thread exits.
  */
 void Stop(const Napi::CallbackInfo& /*info*/) { g_engine.stop(); }
 
 /**
- * setNoiseLevel(level: number) -> void
- *
- * Set suppression level. 0.0 = passthrough, 1.0 = full suppression.
+ * setNoiseLevel(level) -> void
  */
 void SetNoiseLevel(const Napi::CallbackInfo& info) {
   if (info.Length() < 1 || !info[0].IsNumber()) return;
@@ -115,6 +108,22 @@ Napi::Value GetNoiseLevel(const Napi::CallbackInfo& info) {
 }
 
 /**
+ * setVadThreshold(threshold) -> void
+ */
+void SetVadThreshold(const Napi::CallbackInfo& info) {
+  if (info.Length() < 1 || !info[0].IsNumber()) return;
+  float threshold = info[0].As<Napi::Number>().FloatValue();
+  g_engine.setVadThreshold(threshold);
+}
+
+/**
+ * getVadThreshold() -> number
+ */
+Napi::Value GetVadThreshold(const Napi::CallbackInfo& info) {
+  return Napi::Number::New(info.Env(), g_engine.getVadThreshold());
+}
+
+/**
  * isRunning() -> boolean
  */
 Napi::Value IsRunning(const Napi::CallbackInfo& info) {
@@ -122,7 +131,33 @@ Napi::Value IsRunning(const Napi::CallbackInfo& info) {
 }
 
 /**
- * Module initialization -- called when require('noiseguard') loads the .node file.
+ * getMetrics() -> { inputRms, outputRms, vadProbability, gateGain, framesProcessed }
+ *
+ * Returns a snapshot of real-time audio metrics. Lock-free atomic reads.
+ * Call this from a polling interval (e.g. every 100ms) to animate the UI meter.
+ */
+Napi::Value GetMetrics(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+
+  const auto& m = g_engine.metrics();
+
+  Napi::Object result = Napi::Object::New(env);
+  result.Set("inputRms", Napi::Number::New(env,
+      static_cast<double>(m.inputRms.load(std::memory_order_relaxed))));
+  result.Set("outputRms", Napi::Number::New(env,
+      static_cast<double>(m.outputRms.load(std::memory_order_relaxed))));
+  result.Set("vadProbability", Napi::Number::New(env,
+      static_cast<double>(m.vadProbability.load(std::memory_order_relaxed))));
+  result.Set("gateGain", Napi::Number::New(env,
+      static_cast<double>(m.currentGain.load(std::memory_order_relaxed))));
+  result.Set("framesProcessed", Napi::Number::New(env,
+      static_cast<double>(m.framesProcessed.load(std::memory_order_relaxed))));
+
+  return result;
+}
+
+/**
+ * Module initialization.
  */
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
   exports.Set("getDevices", Napi::Function::New(env, GetDevices));
@@ -130,7 +165,10 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
   exports.Set("stop", Napi::Function::New(env, Stop));
   exports.Set("setNoiseLevel", Napi::Function::New(env, SetNoiseLevel));
   exports.Set("getNoiseLevel", Napi::Function::New(env, GetNoiseLevel));
+  exports.Set("setVadThreshold", Napi::Function::New(env, SetVadThreshold));
+  exports.Set("getVadThreshold", Napi::Function::New(env, GetVadThreshold));
   exports.Set("isRunning", Napi::Function::New(env, IsRunning));
+  exports.Set("getMetrics", Napi::Function::New(env, GetMetrics));
   return exports;
 }
 

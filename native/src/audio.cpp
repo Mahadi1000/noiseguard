@@ -110,13 +110,16 @@ std::string AudioEngine::start(const AudioConfig& config) {
     return std::string("Failed to start capture stream: ") + Pa_GetErrorText(err);
   }
 
-  err = Pa_StartStream(outputStream_);
-  if (err != paNoError) {
-    Pa_StopStream(captureStream_);
-    closeStreams();
-    rnnoise_.destroy();
-    Pa_Terminate();
-    return std::string("Failed to start output stream: ") + Pa_GetErrorText(err);
+  /* Output stream is optional (outputDeviceIndex == -2 => mute). */
+  if (outputStream_) {
+    err = Pa_StartStream(outputStream_);
+    if (err != paNoError) {
+      Pa_StopStream(captureStream_);
+      closeStreams();
+      rnnoise_.destroy();
+      Pa_Terminate();
+      return std::string("Failed to start output stream: ") + Pa_GetErrorText(err);
+    }
   }
 
   /* Launch processing thread. */
@@ -158,11 +161,13 @@ std::string AudioEngine::openStreams() {
   /* Resolve device indices. -1 means use default. */
   int inputIdx = config_.inputDeviceIndex;
   int outputIdx = config_.outputDeviceIndex;
+
+  const bool outputEnabled = (outputIdx != -2);
   if (inputIdx < 0) inputIdx = Pa_GetDefaultInputDevice();
-  if (outputIdx < 0) outputIdx = Pa_GetDefaultOutputDevice();
+  if (outputEnabled && outputIdx < 0) outputIdx = Pa_GetDefaultOutputDevice();
 
   if (inputIdx == paNoDevice) return "No input device available";
-  if (outputIdx == paNoDevice) return "No output device available";
+  if (outputEnabled && outputIdx == paNoDevice) return "No output device available";
 
   /* ── Capture stream parameters ── */
   PaStreamParameters inputParams;
@@ -173,14 +178,16 @@ std::string AudioEngine::openStreams() {
       Pa_GetDeviceInfo(inputIdx)->defaultLowInputLatency;
   inputParams.hostApiSpecificStreamInfo = nullptr;
 
-  /* ── Output stream parameters ── */
+  /* ── Output stream parameters (optional) ── */
   PaStreamParameters outputParams;
-  outputParams.device = outputIdx;
-  outputParams.channelCount = 1;  /* Mono output. */
-  outputParams.sampleFormat = paFloat32;
-  outputParams.suggestedLatency =
-      Pa_GetDeviceInfo(outputIdx)->defaultLowOutputLatency;
-  outputParams.hostApiSpecificStreamInfo = nullptr;
+  if (outputEnabled) {
+    outputParams.device = outputIdx;
+    outputParams.channelCount = 1;  /* Mono output. */
+    outputParams.sampleFormat = paFloat32;
+    outputParams.suggestedLatency =
+        Pa_GetDeviceInfo(outputIdx)->defaultLowOutputLatency;
+    outputParams.hostApiSpecificStreamInfo = nullptr;
+  }
 
 #ifdef _WIN32
   /*
@@ -210,13 +217,15 @@ std::string AudioEngine::openStreams() {
       wasapiInputInfo.threadPriority = eThreadPriorityProAudio;
       inputParams.hostApiSpecificStreamInfo = &wasapiInputInfo;
 
-      memset(&wasapiOutputInfo, 0, sizeof(wasapiOutputInfo));
-      wasapiOutputInfo.size = sizeof(PaWasapiStreamInfo);
-      wasapiOutputInfo.hostApiType = paWASAPI;
-      wasapiOutputInfo.version = 1;
-      wasapiOutputInfo.flags = paWinWasapiExclusive | paWinWasapiThreadPriority;
-      wasapiOutputInfo.threadPriority = eThreadPriorityProAudio;
-      outputParams.hostApiSpecificStreamInfo = &wasapiOutputInfo;
+      if (outputEnabled) {
+        memset(&wasapiOutputInfo, 0, sizeof(wasapiOutputInfo));
+        wasapiOutputInfo.size = sizeof(PaWasapiStreamInfo);
+        wasapiOutputInfo.hostApiType = paWASAPI;
+        wasapiOutputInfo.version = 1;
+        wasapiOutputInfo.flags = paWinWasapiExclusive | paWinWasapiThreadPriority;
+        wasapiOutputInfo.threadPriority = eThreadPriorityProAudio;
+        outputParams.hostApiSpecificStreamInfo = &wasapiOutputInfo;
+      }
     }
   }
 #endif
@@ -248,6 +257,11 @@ std::string AudioEngine::openStreams() {
       return std::string("Failed to open capture stream: ") +
              Pa_GetErrorText(err);
     }
+  }
+
+  if (!outputEnabled) {
+    outputStream_ = nullptr;
+    return ""; /* Success: capture-only (mute output) */
   }
 
   err = Pa_OpenStream(&outputStream_, nullptr, &outputParams,
@@ -379,8 +393,10 @@ void AudioEngine::processingLoop() {
       /* Run noise suppression. */
       rnnoise_.processFrame(frame);
 
-      /* Write processed frame to output ring buffer. */
-      outputRing_->write(frame, kRNNoiseFrameSize);
+      /* If output is disabled, discard processed audio (no monitoring). */
+      if (outputStream_) {
+        outputRing_->write(frame, kRNNoiseFrameSize);
+      }
     } else {
       /*
        * Not enough data yet. Sleep briefly to avoid spinning at 100% CPU.
@@ -428,11 +444,13 @@ void AudioEngine::attemptRestart() {
       continue;
     }
 
-    PaError e2 = Pa_StartStream(outputStream_);
-    if (e2 != paNoError) {
-      Pa_StopStream(captureStream_);
-      closeStreams();
-      continue;
+    if (outputStream_) {
+      PaError e2 = Pa_StartStream(outputStream_);
+      if (e2 != paNoError) {
+        Pa_StopStream(captureStream_);
+        closeStreams();
+        continue;
+      }
     }
 
     if (statusCallback_) {
@@ -458,6 +476,14 @@ float AudioEngine::getSuppressionLevel() const {
 
 void AudioEngine::setStatusCallback(StatusCallback cb) {
   statusCallback_ = std::move(cb);
+}
+
+void AudioEngine::setVadThreshold(float threshold) {
+  rnnoise_.setVadThreshold(threshold);
+}
+
+float AudioEngine::getVadThreshold() const {
+  return rnnoise_.getVadThreshold();
 }
 
 }  // namespace noiseguard

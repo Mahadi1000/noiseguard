@@ -55,7 +55,7 @@ app.on('before-quit', () => {
 function createMainWindow() {
   mainWindow = new BrowserWindow({
     width: 380,
-    height: 520,
+    height: 720,
     show: false,          /* Start hidden -- tray icon shows the window. */
     frame: false,         /* Frameless for a clean tray-popup look. */
     resizable: false,
@@ -155,5 +155,30 @@ ipcMain.handle('audio:get-status', () => {
     };
   } catch (err) {
     return { running: false, level: 1.0, error: err.message };
+  }
+});
+
+/**
+ * audio:get-metrics -> { inputRms, outputRms, vadProbability, gateGain, framesProcessed }
+ * Polled from the renderer at ~100ms intervals for the level meter and logs.
+ */
+ipcMain.handle('audio:get-metrics', () => {
+  try {
+    return addon.getMetrics();
+  } catch (err) {
+    return { inputRms: 0, outputRms: 0, vadProbability: 0, gateGain: 0, framesProcessed: 0 };
+  }
+});
+
+/**
+ * audio:set-vad-threshold -> { success: boolean }
+ * @param {number} threshold - VAD gate threshold [0.0, 1.0]
+ */
+ipcMain.handle('audio:set-vad-threshold', (_event, threshold) => {
+  try {
+    addon.setVadThreshold(threshold);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
   }
 });

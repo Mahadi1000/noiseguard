@@ -45,9 +45,11 @@ static constexpr float kGateReleaseCoeff = 0.04f;
 static constexpr float kMinGateGain = 0.0f;
 
 /*
- * Comfort noise level (RMS). ~-60 dBFS.
+ * Comfort noise level (RMS). Kept very low; disabled by default via
+ * comfortNoiseEnabled_ so we get true digital silence unless explicitly
+ * enabled for testing.
  */
-static constexpr float kComfortNoiseLevel = 0.001f;
+static constexpr float kComfortNoiseLevel = 0.0003f;
 
 /*
  * Hysteresis band for VAD gating (wider = less flicker).
@@ -56,9 +58,10 @@ static constexpr float kVadHysteresis = 0.15f;
 
 /*
  * Hard noise floor. Samples with absolute value below this are zeroed.
- * ~-54 dBFS -- below audible threshold for most setups.
+ * We keep this independent of the gate so that when the gate is closed
+ * we still clamp tiny residuals to EXACT zero (no hiss/buzz at rest).
  */
-static constexpr float kNoiseFloor = 0.002f;
+static constexpr float kNoiseFloor = 0.003f;
 
 /* ─── Lifecycle ─────────────────────────────────────────────────────────── */
 
@@ -171,7 +174,7 @@ float RNNoiseWrapper::processFrame(float* frame) {
   }
 
   /* ── 8. Hard noise floor clamp (force true silence) ── */
-  float floorThresh = kNoiseFloor * std::max(smoothGain_, 0.01f);
+  float floorThresh = kNoiseFloor;
   for (size_t i = 0; i < kRNNoiseFrameSize; i++) {
     if (std::abs(frame[i]) < floorThresh) {
       frame[i] = 0.0f;

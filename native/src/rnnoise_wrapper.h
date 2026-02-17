@@ -105,7 +105,7 @@ class RNNoiseWrapper {
   std::atomic<float> vadThreshold_{0.65f};
 
   /* Comfort noise toggle. */
-  std::atomic<bool> comfortNoiseEnabled_{true};
+  std::atomic<bool> comfortNoiseEnabled_{false};
 
   /**
    * Smoothed gate gain with asymmetric timing.

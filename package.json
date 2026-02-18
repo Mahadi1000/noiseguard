@@ -9,7 +9,13 @@
     "build:native": "powershell -ExecutionPolicy Bypass -File ./scripts/build-native.ps1",
     "rebuild:electron": "electron-rebuild -f -w noiseguard"
   },
-  "keywords": ["noise-cancellation", "rnnoise", "electron", "portaudio", "wasapi"],
+  "keywords": [
+    "noise-cancellation",
+    "rnnoise",
+    "electron",
+    "portaudio",
+    "wasapi"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
@@ -18,6 +24,7 @@
   "devDependencies": {
     "@electron/rebuild": "^3.6.0",
     "electron": "^33.0.0",
+    "electron-builder": "^26.7.0",
     "node-gyp": "^12.1.0"
   },
   "engines": {

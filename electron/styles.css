@@ -1,5 +1,5 @@
 /*
- * NoiseGuard - Dark Theme with Level Meters
+ * Ainoiceguard - Dark Theme with Level Meters
  * Compact tray popup window (380x640).
  */
 
@@ -25,7 +25,8 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: var(--bg);
   color: var(--text);
   overflow-y: auto;
@@ -333,7 +334,7 @@ body {
 .log-container {
   max-height: 80px;
   overflow-y: auto;
-  font-family: 'Consolas', 'Courier New', monospace;
+  font-family: "Consolas", "Courier New", monospace;
   font-size: 10px;
   color: var(--text-dim);
   line-height: 1.5;
@@ -351,7 +352,7 @@ body {
 
 .log-entry {
   padding: 1px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
 }
 
 .log-entry .log-time {

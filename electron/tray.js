@@ -1,13 +1,13 @@
 /**
- * NoiseGuard - System Tray Management
+ * Ainoiceguard - System Tray Management
  *
  * Creates a tray icon with context menu for quick ON/OFF control.
  * Clicking the tray icon toggles the main window visibility,
  * positioned near the tray (bottom-right on Windows).
  */
 
-const { Tray, Menu, nativeImage, app, screen } = require('electron');
-const path = require('path');
+const { Tray, Menu, nativeImage, app, screen } = require("electron");
+const path = require("path");
 
 let tray = null;
 let mainWindowRef = null;
@@ -24,15 +24,17 @@ function createTray(mainWindow) {
    * In production, replace with a proper .ico/.png asset.
    * For the starter, we generate a colored square programmatically.
    */
-  const icon = nativeImage.createFromDataURL(generateTrayIconDataURL('#00CC88'));
+  const icon = nativeImage.createFromDataURL(
+    generateTrayIconDataURL("#00CC88"),
+  );
 
   tray = new Tray(icon);
-  tray.setToolTip('NoiseGuard - Noise Cancellation');
+  tray.setToolTip("Ainoiceguard - Noise Cancellation");
 
   updateTrayMenu(false);
 
   /* Click tray icon -> toggle window visibility near the tray. */
-  tray.on('click', () => {
+  tray.on("click", () => {
     if (!mainWindowRef) return;
     if (mainWindowRef.isVisible()) {
       mainWindowRef.hide();
@@ -53,16 +55,16 @@ function updateTrayMenu(isRunning) {
 
   const menu = Menu.buildFromTemplate([
     {
-      label: 'NoiseGuard',
+      label: "Ainoiceguard",
       enabled: false,
     },
-    { type: 'separator' },
+    { type: "separator" },
     {
-      label: isRunning ? 'Noise Cancellation: ON' : 'Noise Cancellation: OFF',
+      label: isRunning ? "Noise Cancellation: ON" : "Noise Cancellation: OFF",
       enabled: false,
     },
     {
-      label: 'Show Window',
+      label: "Show Window",
       click: () => {
         if (mainWindowRef) {
           positionWindowNearTray();
@@ -71,9 +73,9 @@ function updateTrayMenu(isRunning) {
         }
       },
     },
-    { type: 'separator' },
+    { type: "separator" },
     {
-      label: 'Quit',
+      label: "Quit",
       click: () => {
         app.isQuitting = true;
         app.quit();
@@ -84,7 +86,7 @@ function updateTrayMenu(isRunning) {
   tray.setContextMenu(menu);
 
   /* Update icon color based on state. */
-  const color = isRunning ? '#00CC88' : '#666666';
+  const color = isRunning ? "#00CC88" : "#666666";
   tray.setImage(nativeImage.createFromDataURL(generateTrayIconDataURL(color)));
 }
 
@@ -103,11 +105,16 @@ function positionWindowNearTray() {
   const workArea = display.workArea;
 
   /* Position above the tray icon, right-aligned. */
-  let x = Math.round(trayBounds.x - windowBounds.width / 2 + trayBounds.width / 2);
+  let x = Math.round(
+    trayBounds.x - windowBounds.width / 2 + trayBounds.width / 2,
+  );
   let y = Math.round(workArea.y + workArea.height - windowBounds.height - 8);
 
   /* Clamp to work area. */
-  x = Math.max(workArea.x, Math.min(x, workArea.x + workArea.width - windowBounds.width));
+  x = Math.max(
+    workArea.x,
+    Math.min(x, workArea.x + workArea.width - windowBounds.width),
+  );
   y = Math.max(workArea.y, y);
 
   mainWindowRef.setPosition(x, y);
@@ -143,17 +150,20 @@ function generateTrayIconDataURL(color) {
       const idx = (y * size + x) * 4;
 
       if (dist <= 6) {
-        canvas[idx] = r;       /* R */
-        canvas[idx + 1] = g;   /* G */
-        canvas[idx + 2] = b;   /* B */
+        canvas[idx] = r; /* R */
+        canvas[idx + 1] = g; /* G */
+        canvas[idx + 2] = b; /* B */
         canvas[idx + 3] = 255; /* A */
       } else {
-        canvas[idx + 3] = 0;   /* Transparent */
+        canvas[idx + 3] = 0; /* Transparent */
       }
     }
   }
 
-  const img = nativeImage.createFromBuffer(canvas, { width: size, height: size });
+  const img = nativeImage.createFromBuffer(canvas, {
+    width: size,
+    height: size,
+  });
   return img.toDataURL();
 }
 

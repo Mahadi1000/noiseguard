@@ -1,8 +1,8 @@
 /**
- * NoiseGuard - Renderer Process (Vanilla JS)
+ * Ainoiceguard - Renderer Process (Vanilla JS)
  *
  * Handles UI interaction and communicates with main process via the
- * preload-exposed `window.noiseGuard` bridge.
+ * preload-exposed `window.ainoiceguard` bridge.
  *
  * Features:
  *   - Device selection and toggle
@@ -13,39 +13,39 @@
 
 /* ── DOM References ──────────────────────────────────────────────────────── */
 
-const toggleBtn = document.getElementById('toggleBtn');
-const toggleHint = document.getElementById('toggleHint');
-const statusDot = document.getElementById('statusDot');
-const inputSelect = document.getElementById('inputSelect');
-const outputSelect = document.getElementById('outputSelect');
-const levelSlider = document.getElementById('levelSlider');
-const levelValue = document.getElementById('levelValue');
-const vadThreshSlider = document.getElementById('vadThreshSlider');
-const vadThreshValue = document.getElementById('vadThreshValue');
-const statusText = document.getElementById('statusText');
-const latencyText = document.getElementById('latencyText');
-const framesText = document.getElementById('framesText');
-const gateText = document.getElementById('gateText');
-const errorBar = document.getElementById('errorBar');
+const toggleBtn = document.getElementById("toggleBtn");
+const toggleHint = document.getElementById("toggleHint");
+const statusDot = document.getElementById("statusDot");
+const inputSelect = document.getElementById("inputSelect");
+const outputSelect = document.getElementById("outputSelect");
+const levelSlider = document.getElementById("levelSlider");
+const levelValue = document.getElementById("levelValue");
+const vadThreshSlider = document.getElementById("vadThreshSlider");
+const vadThreshValue = document.getElementById("vadThreshValue");
+const statusText = document.getElementById("statusText");
+const latencyText = document.getElementById("latencyText");
+const framesText = document.getElementById("framesText");
+const gateText = document.getElementById("gateText");
+const errorBar = document.getElementById("errorBar");
 
 /* Meters */
-const inputMeter = document.getElementById('inputMeter');
-const outputMeter = document.getElementById('outputMeter');
-const inputDb = document.getElementById('inputDb');
-const outputDb = document.getElementById('outputDb');
-const vadBar = document.getElementById('vadBar');
-const vadValue = document.getElementById('vadValue');
-const meterSection = document.getElementById('meterSection');
+const inputMeter = document.getElementById("inputMeter");
+const outputMeter = document.getElementById("outputMeter");
+const inputDb = document.getElementById("inputDb");
+const outputDb = document.getElementById("outputDb");
+const vadBar = document.getElementById("vadBar");
+const vadValue = document.getElementById("vadValue");
+const meterSection = document.getElementById("meterSection");
 
 /* Log */
-const logContainer = document.getElementById('logContainer');
-const logSection = document.getElementById('logSection');
+const logContainer = document.getElementById("logContainer");
+const logSection = document.getElementById("logSection");
 
 /* VB-Cable setup guide */
-const setupGuide = document.getElementById('setupGuide');
-const vbCableFound = document.getElementById('vbCableFound');
-const vbCableMissing = document.getElementById('vbCableMissing');
-const vbCableLink = document.getElementById('vbCableLink');
+const setupGuide = document.getElementById("setupGuide");
+const vbCableFound = document.getElementById("vbCableFound");
+const vbCableMissing = document.getElementById("vbCableMissing");
+const vbCableLink = document.getElementById("vbCableLink");
 
 /* ── State ───────────────────────────────────────────────────────────────── */
 
@@ -68,22 +68,22 @@ async function init() {
 /** Load available audio devices into the dropdown selects. */
 async function loadDevices() {
   try {
-    const devices = await window.noiseGuard.getDevices();
+    const devices = await window.ainoiceguard.getDevices();
 
     if (devices.error) {
       showError(devices.error);
       return;
     }
 
-    populateSelect(inputSelect, devices.inputs, 'input');
-    populateSelect(outputSelect, devices.outputs, 'output');
+    populateSelect(inputSelect, devices.inputs, "input");
+    populateSelect(outputSelect, devices.outputs, "output");
 
     /* Auto-detect VB-Cable and show setup guide. */
     detectVBCable(devices.outputs);
 
     hideError();
   } catch (err) {
-    showError('Failed to load audio devices: ' + err.message);
+    showError("Failed to load audio devices: " + err.message);
   }
 }
 
@@ -91,17 +91,17 @@ async function loadDevices() {
 function populateSelect(select, devices, type) {
   select.innerHTML = '<option value="-1">System Default</option>';
 
-  if (type === 'output') {
+  if (type === "output") {
     select.innerHTML += '<option value="-2">No Output (Mute)</option>';
   }
 
   for (const d of devices) {
-    const opt = document.createElement('option');
+    const opt = document.createElement("option");
     opt.value = d.index;
     opt.textContent = d.name;
 
-    if (d.name.toLowerCase().includes('cable')) {
-      opt.textContent += ' [VB-Cable]';
+    if (d.name.toLowerCase().includes("cable")) {
+      opt.textContent += " [VB-Cable]";
     }
 
     select.appendChild(opt);
@@ -111,7 +111,7 @@ function populateSelect(select, devices, type) {
 /** Sync UI with engine status. */
 async function syncStatus() {
   try {
-    const status = await window.noiseGuard.getStatus();
+    const status = await window.ainoiceguard.getStatus();
     updateUI(status.running, status.level);
   } catch (err) {
     /* Silently ignore polling errors. */
@@ -120,34 +120,34 @@ async function syncStatus() {
 
 /* ── Toggle Noise Cancellation ───────────────────────────────────────────── */
 
-toggleBtn.addEventListener('click', async () => {
+toggleBtn.addEventListener("click", async () => {
   toggleBtn.disabled = true;
 
   try {
     if (isRunning) {
-      const result = await window.noiseGuard.stop();
+      const result = await window.ainoiceguard.stop();
       if (result.success) {
         updateUI(false);
-        addLog('Engine stopped', 'warn');
+        addLog("Engine stopped", "warn");
       } else {
-        showError(result.error || 'Failed to stop');
+        showError(result.error || "Failed to stop");
       }
     } else {
       const inputIdx = parseInt(inputSelect.value, 10);
       const outputIdx = parseInt(outputSelect.value, 10);
 
-      statusText.textContent = 'Starting...';
-      addLog('Starting engine...', 'ok');
-      const result = await window.noiseGuard.start(inputIdx, outputIdx);
+      statusText.textContent = "Starting...";
+      addLog("Starting engine...", "ok");
+      const result = await window.ainoiceguard.start(inputIdx, outputIdx);
 
       if (result.success) {
         updateUI(true);
         hideError();
-        addLog('Engine started. RNNoise processing frames.', 'ok');
+        addLog("Engine started. RNNoise processing frames.", "ok");
       } else {
-        showError(result.error || 'Failed to start');
-        statusText.textContent = 'Error';
-        addLog('Start failed: ' + (result.error || 'unknown'), 'warn');
+        showError(result.error || "Failed to start");
+        statusText.textContent = "Error";
+        addLog("Start failed: " + (result.error || "unknown"), "warn");
       }
     }
   } catch (err) {
@@ -159,57 +159,61 @@ toggleBtn.addEventListener('click', async () => {
 
 /* ── Suppression Level Slider ────────────────────────────────────────────── */
 
-levelSlider.addEventListener('input', () => {
+levelSlider.addEventListener("input", () => {
   const pct = parseInt(levelSlider.value, 10);
-  levelValue.textContent = pct + '%';
+  levelValue.textContent = pct + "%";
 });
 
-levelSlider.addEventListener('change', async () => {
+levelSlider.addEventListener("change", async () => {
   const level = parseInt(levelSlider.value, 10) / 100.0;
   try {
-    await window.noiseGuard.setLevel(level);
-  } catch (err) { /* Non-critical */ }
+    await window.ainoiceguard.setLevel(level);
+  } catch (err) {
+    /* Non-critical */
+  }
 });
 
 /* ── VAD Gate Threshold Slider ───────────────────────────────────────────── */
 
-vadThreshSlider.addEventListener('input', () => {
+vadThreshSlider.addEventListener("input", () => {
   const pct = parseInt(vadThreshSlider.value, 10);
-  vadThreshValue.textContent = pct + '%';
+  vadThreshValue.textContent = pct + "%";
 });
 
-vadThreshSlider.addEventListener('change', async () => {
+vadThreshSlider.addEventListener("change", async () => {
   const threshold = parseInt(vadThreshSlider.value, 10) / 100.0;
   try {
-    await window.noiseGuard.setVadThreshold(threshold);
-    addLog('VAD threshold set to ' + (threshold * 100).toFixed(0) + '%', 'ok');
-  } catch (err) { /* Non-critical */ }
+    await window.ainoiceguard.setVadThreshold(threshold);
+    addLog("VAD threshold set to " + (threshold * 100).toFixed(0) + "%", "ok");
+  } catch (err) {
+    /* Non-critical */
+  }
 });
 
 /* ── Device selection change while running -> restart ────────────────────── */
 
-inputSelect.addEventListener('change', restartIfRunning);
-outputSelect.addEventListener('change', restartIfRunning);
+inputSelect.addEventListener("change", restartIfRunning);
+outputSelect.addEventListener("change", restartIfRunning);
 
 async function restartIfRunning() {
   if (!isRunning) return;
 
-  await window.noiseGuard.stop();
+  await window.ainoiceguard.stop();
   const inputIdx = parseInt(inputSelect.value, 10);
   const outputIdx = parseInt(outputSelect.value, 10);
 
-  statusText.textContent = 'Restarting...';
-  addLog('Restarting with new devices...', 'ok');
-  const result = await window.noiseGuard.start(inputIdx, outputIdx);
+  statusText.textContent = "Restarting...";
+  addLog("Restarting with new devices...", "ok");
+  const result = await window.ainoiceguard.start(inputIdx, outputIdx);
 
   if (result.success) {
     updateUI(true);
     hideError();
-    addLog('Restarted successfully.', 'ok');
+    addLog("Restarted successfully.", "ok");
   } else {
-    showError(result.error || 'Restart failed');
+    showError(result.error || "Restart failed");
     updateUI(false);
-    addLog('Restart failed: ' + (result.error || 'unknown'), 'warn');
+    addLog("Restart failed: " + (result.error || "unknown"), "warn");
   }
 }
 
@@ -221,40 +225,52 @@ function startMetricsPolling() {
   lastFrameCount = 0;
   metricsInterval = setInterval(async () => {
     try {
-      const m = await window.noiseGuard.getMetrics();
+      const m = await window.ainoiceguard.getMetrics();
 
       /* Level meters (RMS -> percentage, with log scaling for dB feel) */
       const inPct = rmsToPercent(m.inputRms);
       const outPct = rmsToPercent(m.outputRms);
 
-      inputMeter.style.width = inPct + '%';
-      outputMeter.style.width = outPct + '%';
+      inputMeter.style.width = inPct + "%";
+      outputMeter.style.width = outPct + "%";
       inputDb.textContent = rmsToDb(m.inputRms);
       outputDb.textContent = rmsToDb(m.outputRms);
 
       /* VAD bar */
       const vadPct = Math.round(m.vadProbability * 100);
-      vadBar.style.width = vadPct + '%';
-      vadValue.textContent = vadPct + '%';
+      vadBar.style.width = vadPct + "%";
+      vadValue.textContent = vadPct + "%";
 
       /* Status fields */
       framesText.textContent = formatFrameCount(m.framesProcessed);
-      gateText.textContent = (m.gateGain * 100).toFixed(0) + '%';
+      gateText.textContent = (m.gateGain * 100).toFixed(0) + "%";
 
       /* Log periodic confirmation that RNNoise is processing */
       if (m.framesProcessed > 0 && m.framesProcessed !== lastFrameCount) {
         const delta = m.framesProcessed - lastFrameCount;
-        if (lastFrameCount > 0 && delta > 0 && m.framesProcessed % 500 < delta) {
+        if (
+          lastFrameCount > 0 &&
+          delta > 0 &&
+          m.framesProcessed % 500 < delta
+        ) {
           addLog(
-            'RNNoise: ' + m.framesProcessed + ' frames | ' +
-            'VAD=' + (m.vadProbability * 100).toFixed(0) + '% | ' +
-            'Gate=' + (m.gateGain * 100).toFixed(0) + '%',
-            'ok'
+            "RNNoise: " +
+              m.framesProcessed +
+              " frames | " +
+              "VAD=" +
+              (m.vadProbability * 100).toFixed(0) +
+              "% | " +
+              "Gate=" +
+              (m.gateGain * 100).toFixed(0) +
+              "%",
+            "ok",
           );
         }
         lastFrameCount = m.framesProcessed;
       }
-    } catch (err) { /* Ignore polling errors */ }
+    } catch (err) {
+      /* Ignore polling errors */
+    }
   }, 100);
 }
 
@@ -264,14 +280,14 @@ function stopMetricsPolling() {
     metricsInterval = null;
   }
   /* Reset meters */
-  inputMeter.style.width = '0%';
-  outputMeter.style.width = '0%';
-  vadBar.style.width = '0%';
-  inputDb.textContent = '-\u221E';
-  outputDb.textContent = '-\u221E';
-  vadValue.textContent = '0%';
-  framesText.textContent = '0';
-  gateText.textContent = '--';
+  inputMeter.style.width = "0%";
+  outputMeter.style.width = "0%";
+  vadBar.style.width = "0%";
+  inputDb.textContent = "-\u221E";
+  outputDb.textContent = "-\u221E";
+  vadValue.textContent = "0%";
+  framesText.textContent = "0";
+  gateText.textContent = "--";
 }
 
 /** Convert RMS [0..1] to a display percentage (log-scaled). */
@@ -284,30 +300,36 @@ function rmsToPercent(rms) {
 
 /** Convert RMS to dB string. */
 function rmsToDb(rms) {
-  if (rms <= 0.0001) return '-\u221E';
+  if (rms <= 0.0001) return "-\u221E";
   const db = 20 * Math.log10(rms);
-  return db.toFixed(0) + 'dB';
+  return db.toFixed(0) + "dB";
 }
 
 /** Format large frame counts with K/M suffix. */
 function formatFrameCount(n) {
-  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
-  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + "M";
+  if (n >= 1000) return (n / 1000).toFixed(1) + "K";
   return String(n);
 }
 
 /* ── Processing Log ──────────────────────────────────────────────────────── */
 
 function addLog(message, type) {
-  const entry = document.createElement('div');
-  entry.className = 'log-entry';
+  const entry = document.createElement("div");
+  entry.className = "log-entry";
 
   const now = new Date();
-  const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+  const timeStr = now.toLocaleTimeString("en-US", { hour12: false });
 
   entry.innerHTML =
-    '<span class="log-time">[' + timeStr + ']</span> ' +
-    '<span class="log-' + (type || 'ok') + '">' + message + '</span>';
+    '<span class="log-time">[' +
+    timeStr +
+    "]</span> " +
+    '<span class="log-' +
+    (type || "ok") +
+    '">' +
+    message +
+    "</span>";
 
   logContainer.appendChild(entry);
   logLines++;
@@ -327,24 +349,24 @@ function addLog(message, type) {
 function updateUI(running, level) {
   isRunning = running;
 
-  toggleBtn.classList.toggle('on', running);
-  toggleBtn.classList.toggle('off', !running);
-  toggleBtn.querySelector('.toggle-label').textContent = running ? 'ON' : 'OFF';
+  toggleBtn.classList.toggle("on", running);
+  toggleBtn.classList.toggle("off", !running);
+  toggleBtn.querySelector(".toggle-label").textContent = running ? "ON" : "OFF";
 
   toggleHint.textContent = running
-    ? 'Noise cancellation active'
-    : 'Click to enable noise cancellation';
+    ? "Noise cancellation active"
+    : "Click to enable noise cancellation";
 
-  statusDot.classList.toggle('active', running);
+  statusDot.classList.toggle("active", running);
 
-  statusText.textContent = running ? 'Active' : 'Idle';
+  statusText.textContent = running ? "Active" : "Idle";
 
   if (!running) {
-    latencyText.textContent = '-- ms';
+    latencyText.textContent = "-- ms";
   } else if (parseInt(outputSelect.value, 10) === -2) {
-    latencyText.textContent = 'Muted';
+    latencyText.textContent = "Muted";
   } else {
-    latencyText.textContent = '~12 ms';
+    latencyText.textContent = "~12 ms";
   }
 
   inputSelect.disabled = false;
@@ -353,7 +375,7 @@ function updateUI(running, level) {
   if (level !== undefined) {
     const pct = Math.round(level * 100);
     levelSlider.value = pct;
-    levelValue.textContent = pct + '%';
+    levelValue.textContent = pct + "%";
   }
 
   /* Start/stop metrics polling */
@@ -366,12 +388,12 @@ function updateUI(running, level) {
 
 function showError(msg) {
   errorBar.textContent = msg;
-  errorBar.classList.remove('hidden');
+  errorBar.classList.remove("hidden");
 }
 
 function hideError() {
-  errorBar.classList.add('hidden');
-  errorBar.textContent = '';
+  errorBar.classList.add("hidden");
+  errorBar.textContent = "";
 }
 
 /* ── VB-Cable Detection & Auto-Select ────────────────────────────────────── */
@@ -382,28 +404,33 @@ function hideError() {
  * If not found: show a yellow guide with download link.
  */
 function detectVBCable(outputDevices) {
-  const cableDevice = outputDevices.find(
-    d => d.name.toLowerCase().includes('cable')
+  const cableDevice = outputDevices.find((d) =>
+    d.name.toLowerCase().includes("cable"),
   );
 
   if (cableDevice) {
     /* Auto-select VB-Cable as the output device. */
     outputSelect.value = String(cableDevice.index);
-    vbCableFound.classList.remove('hidden');
-    vbCableMissing.classList.add('hidden');
-    addLog('VB-Cable detected (device #' + cableDevice.index + '). Auto-selected as output.', 'ok');
+    vbCableFound.classList.remove("hidden");
+    vbCableMissing.classList.add("hidden");
+    addLog(
+      "VB-Cable detected (device #" +
+        cableDevice.index +
+        "). Auto-selected as output.",
+      "ok",
+    );
   } else {
-    vbCableFound.classList.add('hidden');
-    vbCableMissing.classList.remove('hidden');
-    addLog('VB-Cable not found. Install it for Zoom/Meet/OBS support.', 'warn');
+    vbCableFound.classList.add("hidden");
+    vbCableMissing.classList.remove("hidden");
+    addLog("VB-Cable not found. Install it for Zoom/Meet/OBS support.", "warn");
   }
 }
 
 /* Open VB-Cable download link in the system browser. */
-vbCableLink.addEventListener('click', (e) => {
+vbCableLink.addEventListener("click", (e) => {
   e.preventDefault();
-  if (window.noiseGuard.openExternal) {
-    window.noiseGuard.openExternal('https://vb-audio.com/Cable/');
+  if (window.ainoiceguard.openExternal) {
+    window.ainoiceguard.openExternal("https://vb-audio.com/Cable/");
   }
 });
 

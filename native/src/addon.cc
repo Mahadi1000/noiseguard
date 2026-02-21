@@ -1,5 +1,5 @@
 /**
- * NoiseGuard N-API Native Addon
+ * Ainoiceguard N-API Native Addon
  *
  * Exposes the C++ AudioEngine to JavaScript via Node-API (N-API).
  * All heavy audio work stays in C++. JavaScript only calls:
@@ -20,7 +20,7 @@
 namespace {
 
 /* Single global engine instance. One engine per process is sufficient. */
-static noiseguard::AudioEngine g_engine;
+static ainoiceguard::AudioEngine g_engine;
 
 /**
  * getDevices() -> { inputs: [...], outputs: [...] }
@@ -28,7 +28,7 @@ static noiseguard::AudioEngine g_engine;
 Napi::Value GetDevices(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
 
-  auto devices = noiseguard::AudioEngine::enumerateDevices();
+  auto devices = ainoiceguard::AudioEngine::enumerateDevices();
 
   Napi::Array inputs = Napi::Array::New(env);
   Napi::Array outputs = Napi::Array::New(env);
@@ -75,11 +75,11 @@ Napi::Value Start(const Napi::CallbackInfo& info) {
     outputIdx = info[1].As<Napi::Number>().Int32Value();
   }
 
-  noiseguard::AudioConfig config;
+  ainoiceguard::AudioConfig config;
   config.inputDeviceIndex = inputIdx;
   config.outputDeviceIndex = outputIdx;
   config.sampleRate = 48000.0;
-  config.framesPerBuffer = noiseguard::kRNNoiseFrameSize;
+  config.framesPerBuffer = ainoiceguard::kRNNoiseFrameSize;
   config.tryExclusiveMode = true;
 
   std::string err = g_engine.start(config);
@@ -174,6 +174,6 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
   return exports;
 }
 
-NODE_API_MODULE(noiseguard, Init)
+NODE_API_MODULE(ainoiceguard, Init)
 
 }  // anonymous namespace

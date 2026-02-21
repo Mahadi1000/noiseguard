@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "noiseguard",
+      "target_name": "ainoiceguard",
       "cflags!": ["-fno-exceptions"],
       "cflags_cc!": ["-fno-exceptions"],
       "sources": ["src/addon.cc", "src/audio.cpp", "src/rnnoise_wrapper.cpp"],

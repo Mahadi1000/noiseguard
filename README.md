@@ -1,4 +1,4 @@
-# NoiseGuard
+# Ainoiceguard
 
 A real-time noise cancellation desktop app for Windows, built with Electron + a native C++ addon. It captures audio from your microphone, runs it through the [RNNoise](https://github.com/xiph/rnnoise) neural network, and routes the clean output to a virtual cable (e.g. VB-Cable) that other apps can use as a microphone.
 
@@ -65,7 +65,7 @@ Electron Renderer (UI)
 Electron Main (main.js)
     │  require()
     ▼
-noiseguard.node  (N-API addon)
+ainoiceguard.node  (N-API addon)
     │
     ├── AudioEngine  (audio.cpp  — PortAudio + threading)
     ├── RNNoiseWrapper (rnnoise_wrapper.cpp)
@@ -94,8 +94,8 @@ noiseguard.node  (N-API addon)
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Mahadi1000/noiseguard.git
-cd noiseguard
+git clone https://github.com/Mahadi1000/ainoiceguard.git
+cd ainoiceguard
 ```
 
 ### 2. Install Node dependencies
@@ -115,7 +115,7 @@ npm run build:native
 Internally this runs `scripts/build-native.ps1` which:
 
 1. Runs CMake to build PortAudio + RNNoise into `deps/install/`
-2. Runs `node-gyp rebuild` to compile `noiseguard.node`
+2. Runs `node-gyp rebuild` to compile `ainoiceguard.node`
 
 ### 4. Rebuild for Electron ABI (required after `npm install`)
 
@@ -141,22 +141,22 @@ npm start
 
 The app runs in the system tray. No visible window — look for the tray icon in the taskbar notification area.
 
-> If the tray icon does not appear, check that Electron is finding `build/Release/noiseguard.node`. Run `npm run rebuild:electron` if you get a "wrong ABI" error.
+> If the tray icon does not appear, check that Electron is finding `build/Release/ainoiceguard.node`. Run `npm run rebuild:electron` if you get a "wrong ABI" error.
 
 ---
 
 ## VB-Cable Setup
 
-NoiseGuard outputs processed audio to a virtual cable, which other apps see as a clean microphone.
+Ainoiceguard outputs processed audio to a virtual cable, which other apps see as a clean microphone.
 
 1. **Download and install** [VB-Cable](https://vb-audio.com/Cable/) (free).
-2. **Open NoiseGuard** from the tray.
+2. **Open Ainoiceguard** from the tray.
 3. Set **Input** to your physical microphone.
 4. Set **Output** to **"CABLE Input (VB-Audio Virtual Cable)"**.
 5. In **Discord / Zoom / Teams**, set the microphone to **"CABLE Output (VB-Audio Virtual Cable)"**.
 
 ```
-Physical Mic  →  NoiseGuard  →  CABLE Input  →  CABLE Output  →  Discord/Zoom
+Physical Mic  →  Ainoiceguard  →  CABLE Input  →  CABLE Output  →  Discord/Zoom
 ```
 
 ---
@@ -170,8 +170,8 @@ Contributions are welcome — bug fixes, new features, platform ports, documenta
 1. **Fork** the repository on GitHub.
 2. **Clone** your fork locally:
    ```bash
-   git clone https://github.com/<your-username>/noiseguard.git
-   cd noiseguard
+   git clone https://github.com/<your-username>/ainoiceguard.git
+   cd ainoiceguard
    ```
 3. **Create a branch** for your change. Use a descriptive name:
 
@@ -233,7 +233,7 @@ PRs are reviewed on a best-effort basis. Feedback will be left as review comment
 
 ## Reporting Issues
 
-Use [GitHub Issues](https://github.com/Mahadi1000/noiseguard/issues) to report bugs or request features.
+Use [GitHub Issues](https://github.com/Mahadi1000/ainoiceguard/issues) to report bugs or request features.
 
 ### Bug reports
 
@@ -255,7 +255,7 @@ Open an issue with the `enhancement` label. Describe:
 
 ### Before opening an issue
 
-- Search [existing issues](https://github.com/Mahadi1000/noiseguard/issues) to avoid duplicates.
+- Search [existing issues](https://github.com/Mahadi1000/ainoiceguard/issues) to avoid duplicates.
 - If you found a security vulnerability, please **do not** open a public issue. Email the maintainer directly.
 
 ---

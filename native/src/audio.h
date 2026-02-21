@@ -15,8 +15,8 @@
  * - WASAPI exclusive locks the device -- no other app can use it simultaneously.
  */
 
-#ifndef NOISEGUARD_AUDIO_H
-#define NOISEGUARD_AUDIO_H
+#ifndef AINOICEGUARD_AUDIO_H
+#define AINOICEGUARD_AUDIO_H
 
 #include <atomic>
 #include <functional>
@@ -33,7 +33,7 @@ typedef void PaStream;
 struct PaStreamCallbackTimeInfo;
 typedef unsigned long PaStreamCallbackFlags;
 
-namespace noiseguard {
+namespace ainoiceguard {
 
 /** Audio device info exposed to JavaScript. */
 struct DeviceInfo {
@@ -153,6 +153,6 @@ class AudioEngine {
   std::thread processingThread_;
 };
 
-}  // namespace noiseguard
+}  // namespace ainoiceguard
 
-#endif  // NOISEGUARD_AUDIO_H
+#endif  // AINOICEGUARD_AUDIO_H

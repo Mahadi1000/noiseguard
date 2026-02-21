@@ -1,150 +1,168 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'">
-  <title>NoiseGuard</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <div id="app">
-    <!-- Header -->
-    <header class="header">
-      <div class="logo">
-        <span class="logo-icon" id="statusDot"></span>
-        <h1>NoiseGuard</h1>
-      </div>
-      <span class="version">v0.2.0</span>
-    </header>
-
-    <!-- Main Toggle -->
-    <section class="section toggle-section">
-      <button id="toggleBtn" class="toggle-btn off">
-        <span class="toggle-label">OFF</span>
-      </button>
-      <p class="toggle-hint" id="toggleHint">Click to enable noise cancellation</p>
-    </section>
-
-    <!-- Input Level Meter -->
-    <section class="section meter-section" id="meterSection">
-      <div class="meter-row">
-        <span class="meter-label">Input</span>
-        <div class="meter-track">
-          <div class="meter-fill" id="inputMeter"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"
+    />
+    <title>Ainoiceguard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Header -->
+      <header class="header">
+        <div class="logo">
+          <span class="logo-icon" id="statusDot"></span>
+          <h1>Ainoiceguard</h1>
         </div>
-        <span class="meter-db" id="inputDb">-&infin;</span>
-      </div>
-      <div class="meter-row">
-        <span class="meter-label">Output</span>
-        <div class="meter-track">
-          <div class="meter-fill meter-fill-out" id="outputMeter"></div>
+        <span class="version">v0.2.0</span>
+      </header>
+
+      <!-- Main Toggle -->
+      <section class="section toggle-section">
+        <button id="toggleBtn" class="toggle-btn off">
+          <span class="toggle-label">OFF</span>
+        </button>
+        <p class="toggle-hint" id="toggleHint">
+          Click to enable noise cancellation
+        </p>
+      </section>
+
+      <!-- Input Level Meter -->
+      <section class="section meter-section" id="meterSection">
+        <div class="meter-row">
+          <span class="meter-label">Input</span>
+          <div class="meter-track">
+            <div class="meter-fill" id="inputMeter"></div>
+          </div>
+          <span class="meter-db" id="inputDb">-&infin;</span>
         </div>
-        <span class="meter-db" id="outputDb">-&infin;</span>
-      </div>
-      <div class="meter-row">
-        <span class="meter-label">Voice</span>
-        <div class="vad-indicator">
-          <div class="vad-bar" id="vadBar"></div>
+        <div class="meter-row">
+          <span class="meter-label">Output</span>
+          <div class="meter-track">
+            <div class="meter-fill meter-fill-out" id="outputMeter"></div>
+          </div>
+          <span class="meter-db" id="outputDb">-&infin;</span>
         </div>
-        <span class="meter-db" id="vadValue">0%</span>
-      </div>
-    </section>
-
-    <!-- Device Selection -->
-    <section class="section">
-      <h2>Input Device (Microphone)</h2>
-      <select id="inputSelect" class="device-select">
-        <option value="-1">System Default</option>
-      </select>
-    </section>
-
-    <section class="section">
-      <h2>Output Device</h2>
-      <select id="outputSelect" class="device-select">
-        <option value="-1">System Default</option>
-      </select>
-    </section>
-
-    <!-- VB-Cable Setup Guide -->
-    <section class="section setup-guide" id="setupGuide">
-      <div id="vbCableFound" class="guide-banner guide-ok hidden">
-        <span class="guide-icon">&#10003;</span>
-        <div class="guide-text">
-          <strong>VB-Cable detected &amp; selected.</strong>
-          In Zoom/Meet/OBS, set your microphone to <em>"CABLE Output"</em>.
+        <div class="meter-row">
+          <span class="meter-label">Voice</span>
+          <div class="vad-indicator">
+            <div class="vad-bar" id="vadBar"></div>
+          </div>
+          <span class="meter-db" id="vadValue">0%</span>
         </div>
-      </div>
-      <div id="vbCableMissing" class="guide-banner guide-warn hidden">
-        <span class="guide-icon">!</span>
-        <div class="guide-text">
-          <strong>VB-Cable not found.</strong>
-          To use with Zoom/Meet/OBS, install VB-Cable (free):
-          <a id="vbCableLink" href="#">vb-audio.com/Cable</a>
-          <br>Then restart NoiseGuard. It will be auto-selected.
+      </section>
+
+      <!-- Device Selection -->
+      <section class="section">
+        <h2>Input Device (Microphone)</h2>
+        <select id="inputSelect" class="device-select">
+          <option value="-1">System Default</option>
+        </select>
+      </section>
+
+      <section class="section">
+        <h2>Output Device</h2>
+        <select id="outputSelect" class="device-select">
+          <option value="-1">System Default</option>
+        </select>
+      </section>
+
+      <!-- VB-Cable Setup Guide -->
+      <section class="section setup-guide" id="setupGuide">
+        <div id="vbCableFound" class="guide-banner guide-ok hidden">
+          <span class="guide-icon">&#10003;</span>
+          <div class="guide-text">
+            <strong>VB-Cable detected &amp; selected.</strong>
+            In Zoom/Meet/OBS, set your microphone to <em>"CABLE Output"</em>.
+          </div>
         </div>
-      </div>
-    </section>
+        <div id="vbCableMissing" class="guide-banner guide-warn hidden">
+          <span class="guide-icon">!</span>
+          <div class="guide-text">
+            <strong>VB-Cable not found.</strong>
+            To use with Zoom/Meet/OBS, install VB-Cable (free):
+            <a id="vbCableLink" href="#">vb-audio.com/Cable</a>
+            <br />Then restart Ainoiceguard. It will be auto-selected.
+          </div>
+        </div>
+      </section>
 
-    <!-- Suppression Level -->
-    <section class="section">
-      <div class="slider-header">
-        <h2>Suppression Level</h2>
-        <span id="levelValue" class="level-value">100%</span>
-      </div>
-      <input type="range" id="levelSlider" class="level-slider"
-             min="0" max="100" value="100" step="1">
-      <div class="slider-labels">
-        <span>Bypass</span>
-        <span>Full</span>
-      </div>
-    </section>
+      <!-- Suppression Level -->
+      <section class="section">
+        <div class="slider-header">
+          <h2>Suppression Level</h2>
+          <span id="levelValue" class="level-value">100%</span>
+        </div>
+        <input
+          type="range"
+          id="levelSlider"
+          class="level-slider"
+          min="0"
+          max="100"
+          value="100"
+          step="1"
+        />
+        <div class="slider-labels">
+          <span>Bypass</span>
+          <span>Full</span>
+        </div>
+      </section>
 
-    <!-- VAD Gate Threshold -->
-    <section class="section">
-      <div class="slider-header">
-        <h2>Voice Gate Sensitivity</h2>
-        <span id="vadThreshValue" class="level-value">65%</span>
-      </div>
-      <input type="range" id="vadThreshSlider" class="level-slider vad-slider"
-             min="0" max="100" value="65" step="1">
-      <div class="slider-labels">
-        <span>Loose</span>
-        <span>Aggressive</span>
-      </div>
-    </section>
+      <!-- VAD Gate Threshold -->
+      <section class="section">
+        <div class="slider-header">
+          <h2>Voice Gate Sensitivity</h2>
+          <span id="vadThreshValue" class="level-value">65%</span>
+        </div>
+        <input
+          type="range"
+          id="vadThreshSlider"
+          class="level-slider vad-slider"
+          min="0"
+          max="100"
+          value="65"
+          step="1"
+        />
+        <div class="slider-labels">
+          <span>Loose</span>
+          <span>Aggressive</span>
+        </div>
+      </section>
 
-    <!-- Status / Latency / Frames -->
-    <section class="section status-section">
-      <div class="status-row">
-        <span class="status-label">Status</span>
-        <span id="statusText" class="status-value">Idle</span>
-      </div>
-      <div class="status-row">
-        <span class="status-label">Latency</span>
-        <span id="latencyText" class="status-value">-- ms</span>
-      </div>
-      <div class="status-row">
-        <span class="status-label">Frames</span>
-        <span id="framesText" class="status-value">0</span>
-      </div>
-      <div class="status-row">
-        <span class="status-label">Gate</span>
-        <span id="gateText" class="status-value">--</span>
-      </div>
-    </section>
+      <!-- Status / Latency / Frames -->
+      <section class="section status-section">
+        <div class="status-row">
+          <span class="status-label">Status</span>
+          <span id="statusText" class="status-value">Idle</span>
+        </div>
+        <div class="status-row">
+          <span class="status-label">Latency</span>
+          <span id="latencyText" class="status-value">-- ms</span>
+        </div>
+        <div class="status-row">
+          <span class="status-label">Frames</span>
+          <span id="framesText" class="status-value">0</span>
+        </div>
+        <div class="status-row">
+          <span class="status-label">Gate</span>
+          <span id="gateText" class="status-value">--</span>
+        </div>
+      </section>
 
-    <!-- Processing Log -->
-    <section class="section log-section" id="logSection">
-      <h2>Processing Log</h2>
-      <div class="log-container" id="logContainer"></div>
-    </section>
+      <!-- Processing Log -->
+      <section class="section log-section" id="logSection">
+        <h2>Processing Log</h2>
+        <div class="log-container" id="logContainer"></div>
+      </section>
 
-    <!-- Error display -->
-    <div id="errorBar" class="error-bar hidden"></div>
-  </div>
+      <!-- Error display -->
+      <div id="errorBar" class="error-bar hidden"></div>
+    </div>
 
-  <script src="renderer.js"></script>
-</body>
+    <script src="renderer.js"></script>
+  </body>
 </html>

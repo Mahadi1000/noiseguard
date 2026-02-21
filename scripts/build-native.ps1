@@ -1,5 +1,5 @@
 # ──────────────────────────────────────────────────────────────────────────────
-# NoiseGuard - Native Build Script (Windows / PowerShell)
+# Ainoiceguard - Native Build Script (Windows / PowerShell)
 #
 # Prerequisites:
 #   - Visual Studio 2022 Build Tools (or full VS) with "Desktop C++" workload
@@ -53,7 +53,7 @@ if (-not $CMAKE_CMD) {
 }
 
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "  NoiseGuard Native Build" -ForegroundColor Cyan
+Write-Host "  Ainoiceguard Native Build" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -275,15 +275,15 @@ if (-not $nodeGypOk) {
 $buildDir = Join-Path (Join-Path $ROOT "build") "Release"
 New-Item -ItemType Directory -Path $buildDir -Force | Out-Null
 
-$nodeFile = Join-Path (Join-Path (Join-Path (Join-Path $ROOT "native") "build") "Release") "noiseguard.node"
+$nodeFile = Join-Path (Join-Path (Join-Path (Join-Path $ROOT "native") "build") "Release") "ainoiceguard.node"
 if (Test-Path $nodeFile) {
     Copy-Item $nodeFile -Destination $buildDir -Force
-    Write-Host "  Copied noiseguard.node to build/Release/" -ForegroundColor Green
+    Write-Host "  Copied ainoiceguard.node to build/Release/" -ForegroundColor Green
 }
 
 Write-Host "[3/3] Done!" -ForegroundColor Green
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host "  Build complete!" -ForegroundColor Cyan
-Write-Host "  Run 'npm start' to launch NoiseGuard." -ForegroundColor Cyan
+Write-Host "  Run 'npm start' to launch Ainoiceguard." -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan

@@ -8,14 +8,14 @@
  * - Producer = capture callback; Consumer = processing thread (or vice versa for output).
  */
 
-#ifndef NOISEGUARD_RINGBUFFER_H
-#define NOISEGUARD_RINGBUFFER_H
+#ifndef AINOICEGUARD_RINGBUFFER_H
+#define AINOICEGUARD_RINGBUFFER_H
 
 #include <atomic>
 #include <cstddef>
 #include <cstring>
 
-namespace noiseguard {
+namespace ainoiceguard {
 
 /** Round up to next power of 2 (for capacity). */
 inline size_t nextPowerOf2(size_t n) {
@@ -88,6 +88,6 @@ class RingBuffer {
   std::atomic<size_t> write_idx_{0};
 };
 
-}  // namespace noiseguard
+}  // namespace ainoiceguard
 
-#endif  // NOISEGUARD_RINGBUFFER_H
+#endif  // AINOICEGUARD_RINGBUFFER_H

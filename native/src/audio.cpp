@@ -24,7 +24,7 @@
 #include "pa_win_wasapi.h"
 #endif
 
-namespace noiseguard {
+namespace ainoiceguard {
 
 /*
  * Ring buffer capacity in samples.
@@ -486,4 +486,4 @@ float AudioEngine::getVadThreshold() const {
   return rnnoise_.getVadThreshold();
 }
 
-}  // namespace noiseguard
+}  // namespace ainoiceguard

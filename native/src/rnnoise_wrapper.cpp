@@ -21,7 +21,7 @@
 
 #include "rnnoise.h"
 
-namespace noiseguard {
+namespace ainoiceguard {
 
 /* ═══════════════════════════════════════════════════════════════════════════
  *  TUNING CONSTANTS
@@ -517,4 +517,4 @@ float RNNoiseWrapper::comfortNoiseSample() {
   return shaped * kSoftSilenceLevel;
 }
 
-}  // namespace noiseguard
+}  // namespace ainoiceguard

@@ -20,8 +20,8 @@
  * - init() and destroy() are NOT real-time safe.
  */
 
-#ifndef NOISEGUARD_RNNOISE_WRAPPER_H
-#define NOISEGUARD_RNNOISE_WRAPPER_H
+#ifndef AINOICEGUARD_RNNOISE_WRAPPER_H
+#define AINOICEGUARD_RNNOISE_WRAPPER_H
 
 #include <atomic>
 #include <cstddef>
@@ -30,7 +30,7 @@
 /* Forward-declare RNNoise opaque type. */
 struct DenoiseState;
 
-namespace noiseguard {
+namespace ainoiceguard {
 
 /* RNNoise operates on exactly 480 samples per frame (10ms at 48kHz). */
 static constexpr size_t kRNNoiseFrameSize = 480;
@@ -162,6 +162,6 @@ class RNNoiseWrapper {
   static float computeRms(const float* buf, size_t len);
 };
 
-}  // namespace noiseguard
+}  // namespace ainoiceguard
 
-#endif  // NOISEGUARD_RNNOISE_WRAPPER_H
+#endif  // AINOICEGUARD_RNNOISE_WRAPPER_H

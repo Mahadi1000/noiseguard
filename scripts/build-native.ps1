@@ -62,7 +62,7 @@ $cmakeSource = Join-Path $ROOT "native"
 $configured = $false
 $usedNinjaFallback = $false
 
-& $CMAKE_CMD -S $cmakeSource -B $DEPS_BUILD -G "Visual Studio 17 2022" -A x64 -DCMAKE_INSTALL_PREFIX=$DEPS_INSTALL
+& $CMAKE_CMD -S $cmakeSource -B $DEPS_BUILD -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$DEPS_INSTALL
 if ($LASTEXITCODE -eq 0) {
     $configured = $true
 }
@@ -81,7 +81,8 @@ if (-not $configured) {
 }
 
 if (-not $configured) {
-    Write-Host "CMake configure failed. Install Visual Studio 2022 Build Tools + Desktop C++ workload." -ForegroundColor Red
+    Write-Host "CMake configure failed. Install Visual Studio 2022 Build Tools + Desktop C++ workload," -ForegroundColor Red
+    Write-Host "or install Ninja (https://ninja-build.org/) for the Ninja fallback generator." -ForegroundColor Red
     exit 1
 }
 

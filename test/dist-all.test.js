@@ -1,13 +1,9 @@
 const test = require('node:test')
 const assert = require('node:assert/strict')
+const { byPlatform } = require('../scripts/dist-all.js')
 
 test('dist planner chooses only host-compatible script', () => {
-  const mapping = {
-    win32: ['dist:win'],
-    linux: ['dist:linux'],
-    darwin: ['dist:mac']
-  }
-  assert.deepEqual(mapping.win32, ['dist:win'])
-  assert.deepEqual(mapping.linux, ['dist:linux'])
-  assert.deepEqual(mapping.darwin, ['dist:mac'])
+  assert.deepEqual(byPlatform.win32, ['dist:win'])
+  assert.deepEqual(byPlatform.linux, ['dist:linux'])
+  assert.deepEqual(byPlatform.darwin, ['dist:mac'])
 })

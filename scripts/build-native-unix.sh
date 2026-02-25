@@ -6,7 +6,7 @@
 # On Debian/Ubuntu: apt-get install build-essential cmake
 # On macOS: xcode-select --install, brew install cmake
 #
-# Usage: ./scripts/build-native-linux.sh   (or run from Docker; see Dockerfile)
+# Usage: ./scripts/build-native-unix.sh   (or run from Docker; see Dockerfile)
 # ──────────────────────────────────────────────────────────────────────────────
 
 set -e

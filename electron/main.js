@@ -102,6 +102,11 @@ function createMainWindow() {
 
   mainWindow.loadFile(path.join(__dirname, "index.html"));
 
+  mainWindow.once("ready-to-show", () => {
+    mainWindow.show();
+    mainWindow.focus();
+  });
+
   /* Hide instead of close so the tray can re-show it. */
   mainWindow.on("close", (e) => {
     if (!app.isQuitting) {

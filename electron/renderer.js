@@ -3,12 +3,6 @@
  *
  * Handles UI interaction and communicates with main process via the
  * preload-exposed `window.ainoiceguard` bridge.
- *
- * Features:
- *   - Device selection and power toggle
- *   - Live level meters (input RMS, output RMS, VAD)
- *   - VAD gate threshold control
- *   - VB-Cable auto-detect
  */
 
 /* ── DOM References ──────────────────────────────────────────────────────── */
@@ -28,7 +22,6 @@ const framesText = document.getElementById("framesText");
 const gateText = document.getElementById("gateText");
 const errorBar = document.getElementById("errorBar");
 
-/* Meters */
 const inputMeter = document.getElementById("inputMeter");
 const outputMeter = document.getElementById("outputMeter");
 const inputDb = document.getElementById("inputDb");
@@ -38,7 +31,6 @@ const vadValue = document.getElementById("vadValue");
 const meterSection = document.getElementById("meterSection");
 const meterHint = document.getElementById("meterHint");
 
-/* VB-Cable setup guide */
 const setupGuide = document.getElementById("setupGuide");
 const vbCableFound = document.getElementById("vbCableFound");
 const vbCableMissing = document.getElementById("vbCableMissing");
@@ -50,20 +42,50 @@ let isRunning = false;
 let metricsInterval = null;
 let noInputPollCount = 0;
 
+/* ── Utility Functions ───────────────────────────────────────────────────── */
+
+function rmsToPercent(rms) {
+  if (rms <= 0.001) return 0;
+  const db = 20 * Math.log10(rms);
+  return Math.max(0, Math.min(100, ((db + 60) / 60) * 100));
+}
+
+function rmsToDb(rms) {
+  if (rms <= 0.0001) return "-\u221E";
+  const db = 20 * Math.log10(rms);
+  return db.toFixed(0) + "dB";
+}
+
+function formatFrameCount(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + "M";
+  if (n >= 1000) return (n / 1000).toFixed(1) + "K";
+  return String(n);
+}
+
+/* ── Bridge Check ────────────────────────────────────────────────────────── */
+
+const bridge = window.ainoiceguard;
+if (!bridge) {
+  document.addEventListener("DOMContentLoaded", () => {
+    showError(
+      "Native bridge failed to load. Restart the app. " +
+        "If the problem persists, run: npm run build:native && npm start",
+    );
+  });
+}
+
 /* ── Initialize ──────────────────────────────────────────────────────────── */
 
 async function init() {
+  if (!bridge) return;
   await loadDevices();
   await syncStatus();
-
-  /* Poll status every 2 seconds for external state changes. */
   setInterval(syncStatus, 2000);
 }
 
-/** Load available audio devices into the dropdown selects. */
 async function loadDevices() {
   try {
-    const devices = await window.ainoiceguard.getDevices();
+    const devices = await bridge.getDevices();
 
     if (devices.error) {
       showError(devices.error);
@@ -72,17 +94,13 @@ async function loadDevices() {
 
     populateSelect(inputSelect, devices.inputs, "input");
     populateSelect(outputSelect, devices.outputs, "output");
-
-    /* Auto-detect VB-Cable and show setup guide. */
     detectVBCable(devices.outputs);
-
     hideError();
   } catch (err) {
     showError("Failed to load audio devices: " + err.message);
   }
 }
 
-/** Populate a <select> with device options. */
 function populateSelect(select, devices, type) {
   select.innerHTML = '<option value="-1">System Default</option>';
 
@@ -103,10 +121,10 @@ function populateSelect(select, devices, type) {
   }
 }
 
-/** Sync UI with engine status. */
 async function syncStatus() {
   try {
-    const status = await window.ainoiceguard.getStatus();
+    if (!bridge) return;
+    const status = await bridge.getStatus();
     updateUI(status.running, status.level);
   } catch (err) {
     /* Silently ignore polling errors. */
@@ -116,11 +134,16 @@ async function syncStatus() {
 /* ── Toggle Noise Cancellation ───────────────────────────────────────────── */
 
 toggleBtn.addEventListener("click", async () => {
+  if (!bridge) {
+    showError("Native bridge not available. Restart the app.");
+    return;
+  }
+
   toggleBtn.disabled = true;
 
   try {
     if (isRunning) {
-      const result = await window.ainoiceguard.stop();
+      const result = await bridge.stop();
       if (result.success) {
         updateUI(false);
       } else {
@@ -131,7 +154,7 @@ toggleBtn.addEventListener("click", async () => {
       const outputIdx = parseInt(outputSelect.value, 10);
 
       statusText.textContent = "Starting...";
-      const result = await window.ainoiceguard.start(inputIdx, outputIdx);
+      const result = await bridge.start(inputIdx, outputIdx);
 
       if (result.success) {
         updateUI(true);
@@ -158,7 +181,7 @@ levelSlider.addEventListener("input", () => {
 levelSlider.addEventListener("change", async () => {
   const level = parseInt(levelSlider.value, 10) / 100.0;
   try {
-    await window.ainoiceguard.setLevel(level);
+    if (bridge) await bridge.setLevel(level);
   } catch (err) {
     /* Non-critical */
   }
@@ -174,7 +197,7 @@ vadThreshSlider.addEventListener("input", () => {
 vadThreshSlider.addEventListener("change", async () => {
   const threshold = parseInt(vadThreshSlider.value, 10) / 100.0;
   try {
-    await window.ainoiceguard.setVadThreshold(threshold);
+    if (bridge) await bridge.setVadThreshold(threshold);
   } catch (err) {
     /* Non-critical */
   }
@@ -186,17 +209,17 @@ inputSelect.addEventListener("change", restartIfRunning);
 outputSelect.addEventListener("change", restartIfRunning);
 
 async function restartIfRunning() {
-  if (!isRunning) return;
+  if (!isRunning || !bridge) return;
 
   try {
     stopMetricsPolling();
     statusText.textContent = "Restarting...";
 
-    await window.ainoiceguard.stop();
+    await bridge.stop();
 
     const inputIdx = parseInt(inputSelect.value, 10);
     const outputIdx = parseInt(outputSelect.value, 10);
-    const result = await window.ainoiceguard.start(inputIdx, outputIdx);
+    const result = await bridge.start(inputIdx, outputIdx);
 
     if (result.success) {
       updateUI(true);
@@ -214,16 +237,15 @@ async function restartIfRunning() {
 /* ── Metrics Polling ─────────────────────────────────────────────────────── */
 
 function startMetricsPolling() {
-  if (metricsInterval) return;
+  if (metricsInterval || !bridge) return;
 
   noInputPollCount = 0;
   metricsInterval = setInterval(async () => {
     try {
-      const m = await window.ainoiceguard.getMetrics();
+      const m = await bridge.getMetrics();
 
       if (!isRunning) return;
 
-      /* Coerce to numbers so we never show NaN (IPC or addon can return undefined) */
       const inputRms = Number(m.inputRms) || 0;
       const outputRms = Number(m.outputRms) || 0;
       const vadProb = Number(m.vadProbability) || 0;
@@ -243,24 +265,28 @@ function startMetricsPolling() {
       vadValue.textContent = vadPct + "%";
 
       framesText.textContent = formatFrameCount(framesProcessed);
-      gateText.textContent = Number.isFinite(gateGain) ? (gateGain * 100).toFixed(0) + "%" : "--";
+      gateText.textContent = Number.isFinite(gateGain)
+        ? (gateGain * 100).toFixed(0) + "%"
+        : "--";
 
-      /* Hints: no input for ~2s, or output is Mute */
       if (meterHint) {
         const outputIsMute = parseInt(outputSelect.value, 10) === -2;
         if (inputRms <= 0.001) {
           noInputPollCount++;
           if (noInputPollCount >= 20) {
-            meterHint.textContent = "No input signal — check microphone and device selection.";
+            meterHint.textContent =
+              "No input signal \u2014 check microphone and device selection.";
             meterHint.classList.remove("hidden");
           } else if (outputIsMute) {
-            meterHint.textContent = "Select an output (e.g. Speakers or CABLE) to hear processed audio.";
+            meterHint.textContent =
+              "Output is muted. Select Speakers or CABLE to hear audio.";
             meterHint.classList.remove("hidden");
           }
         } else {
           noInputPollCount = 0;
           if (outputIsMute) {
-            meterHint.textContent = "Select an output (e.g. Speakers or CABLE) to hear processed audio.";
+            meterHint.textContent =
+              "Output is muted. Select Speakers or CABLE to hear audio.";
             meterHint.classList.remove("hidden");
           } else {
             meterHint.textContent = "";
@@ -294,19 +320,14 @@ function stopMetricsPolling() {
   gateText.textContent = "--";
 }
 
-const { rmsToPercent, rmsToDb, formatFrameCount } = window.ainoiceguard.metricsUtils;
-
 /* ── UI Update Helpers ───────────────────────────────────────────────────── */
 
 function updateUI(running, level) {
   isRunning = running;
 
   toggleBtn.classList.toggle("on", running);
-
   toggleHint.textContent = running ? "Click to disable" : "Click to enable";
-
   statusDot.classList.toggle("active", running);
-
   statusText.textContent = running ? "Active" : "Idle";
 
   if (!running) {
@@ -317,16 +338,12 @@ function updateUI(running, level) {
     latencyText.textContent = "~12 ms";
   }
 
-  inputSelect.disabled = false;
-  outputSelect.disabled = false;
-
   if (level !== undefined) {
     const pct = Math.round(level * 100);
     levelSlider.value = pct;
     levelValue.textContent = pct + "%";
   }
 
-  /* Start/stop metrics polling */
   if (running) {
     startMetricsPolling();
   } else {
@@ -348,15 +365,9 @@ function hideError() {
 
 /* ── VB-Cable Detection & Auto-Select ────────────────────────────────────── */
 
-/**
- * Detect VB-Cable in the device lists.
- * If found in output: auto-select it and show green guide.
- * If not found: show yellow guide with download link.
- */
 function detectVBCable(outputDevices) {
-  /* Hide both banners initially */
-  vbCableFound.classList.add("hidden");
-  vbCableMissing.classList.add("hidden");
+  if (vbCableFound) vbCableFound.classList.add("hidden");
+  if (vbCableMissing) vbCableMissing.classList.add("hidden");
 
   const cableDevice = outputDevices.find((d) =>
     d.name.toLowerCase().includes("cable"),
@@ -364,19 +375,20 @@ function detectVBCable(outputDevices) {
 
   if (cableDevice) {
     outputSelect.value = String(cableDevice.index);
-    vbCableFound.classList.remove("hidden");
+    if (vbCableFound) vbCableFound.classList.remove("hidden");
   } else {
-    vbCableMissing.classList.remove("hidden");
+    if (vbCableMissing) vbCableMissing.classList.remove("hidden");
   }
 }
 
-/* Open VB-Cable download link in the system browser. */
-vbCableLink.addEventListener("click", (e) => {
-  e.preventDefault();
-  if (window.ainoiceguard.openExternal) {
-    window.ainoiceguard.openExternal("https://vb-audio.com/Cable/");
-  }
-});
+if (vbCableLink) {
+  vbCableLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (bridge && bridge.openExternal) {
+      bridge.openExternal("https://vb-audio.com/Cable/");
+    }
+  });
+}
 
 /* ── Boot ────────────────────────────────────────────────────────────────── */
 
